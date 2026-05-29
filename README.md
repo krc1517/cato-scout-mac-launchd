@@ -17,6 +17,21 @@ This package installs Cato AI Scout on macOS with a root-owned `launchd` job tha
 - `cato-scout-refresh.sh` - root-run wrapper script
 - `com.catonetworks.ai-scout-refresh.plist` - `launchd` daemon definition
 
+## Why use `launchd` on macOS instead of cron?
+
+On macOS, `launchd` is the native system service manager and is the recommended way to run recurring background tasks.
+
+For Cato AI Scout, `launchd` is preferred over cron because it:
+
+- is the Apple-supported scheduling mechanism for system services
+- runs reliably at startup with `RunAtLoad`
+- works cleanly as a root-owned daemon in `/Library/LaunchDaemons`
+- provides easier status and troubleshooting with `launchctl`
+- supports straightforward stdout/stderr log files
+- avoids common cron issues on macOS such as limited environment variables and inconsistent execution context
+
+Cron can still run scheduled commands, but for a recurring security agent installation or refresh task on macOS, `launchd` is generally more reliable, easier to support, and more aligned with Apple’s platform conventions.
+
 ## Quick install snippet
 
 Create the token file:
