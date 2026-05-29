@@ -1,0 +1,103 @@
+# cato-scout-mac-launchd
+
+Customer-ready macOS `launchd` package for running Cato AI Scout on a recurring schedule using a bearer token stored in a local root-only file.
+
+
+This package installs Cato AI Scout on macOS with a root-owned `launchd` job that:
+
+- runs once at load
+- runs every 6 hours
+- uses a bearer token stored in a file
+- prevents overlapping runs with a lock directory
+- writes logs to `/var/log`
+
+## Files in this package
+
+- `install-cato-scout-launchd.sh` - installer/uninstaller helper
+- `cato-scout-refresh.sh` - root-run wrapper script
+- `com.catonetworks.ai-scout-refresh.plist` - `launchd` daemon definition
+
+## Token file
+
+Create this file and paste the bearer token into it:
+
+- `/etc/cato-scout/token`
+
+Required permissions:
+
+- directory: `700`
+- token file: `600`
+- owner: `root:wheel`
+
+Example:
+
+```sh
+sudo mkdir -p /etc/cato-scout
+sudo chmod 700 /etc/cato-scout
+sudo sh -c 'printf "%s\n" "aim-REPLACE_WITH_BEARER_TOKEN" > /etc/cato-scout/token'
+sudo chown root:wheel /etc/cato-scout/token
+sudo chmod 600 /etc/cato-scout/token
+```
+
+## Install
+
+From this package directory:
+
+```sh
+sudo sh ./install-cato-scout-launchd.sh install
+```
+
+This installs:
+
+- `/usr/local/sbin/cato-scout-refresh.sh`
+- `/Library/LaunchDaemons/com.catonetworks.ai-scout-refresh.plist`
+
+And then loads the daemon.
+
+## Verify
+
+```sh
+sudo launchctl print system/com.catonetworks.ai-scout-refresh
+sudo tail -100 /var/log/cato-scout-refresh.log
+sudo tail -100 /var/log/cato-scout-refresh.err
+```
+
+## Force a run now
+
+```sh
+sudo launchctl kickstart -k system/com.catonetworks.ai-scout-refresh
+```
+
+## Remove old Scout cron entries
+
+If an older cron-based install exists, remove Scout-related entries:
+
+```sh
+TMP1="$(mktemp)"
+TMP2="$(mktemp)"
+
+(crontab -l 2>/dev/null | grep -viE 'ai-scout|api\.aisec\.catonetworks\.com/ai-scout|cato-scout-refresh' || true) > "$TMP1"
+
+sudo sh -c "(crontab -l -u root 2>/dev/null | grep -viE 'ai-scout|api\\.aisec\\.catonetworks\\.com/ai-scout|cato-scout-refresh' || true) > '$TMP2'"
+
+[ -s "$TMP1" ] && crontab "$TMP1" || crontab -r 2>/dev/null || true
+sudo sh -c "[ -s '$TMP2' ] && crontab -u root '$TMP2' || crontab -r -u root 2>/dev/null || true"
+
+rm -f "$TMP1" "$TMP2"
+```
+
+## Uninstall
+
+```sh
+sudo sh ./install-cato-scout-launchd.sh uninstall
+```
+
+## Notes
+
+- This package assumes the official installer endpoint is:
+  - `https://api.aisec.catonetworks.com/ai-scout/installation.sh`
+- The bearer token is read from `/etc/cato-scout/token`
+- The job runs every 6 hours via `StartInterval=21600`
+- Logs go to:
+  - `/var/log/cato-scout-refresh.log`
+  - `/var/log/cato-scout-refresh.err`
