@@ -17,6 +17,36 @@ This package installs Cato AI Scout on macOS with a root-owned `launchd` job tha
 - `cato-scout-refresh.sh` - root-run wrapper script
 - `com.catonetworks.ai-scout-refresh.plist` - `launchd` daemon definition
 
+## Quick install snippet
+
+Create the token file:
+
+```sh
+sudo mkdir -p /etc/cato-scout
+sudo chmod 700 /etc/cato-scout
+sudo sh -c '''printf "%s\n" "aim-REPLACE_WITH_BEARER_TOKEN" > /etc/cato-scout/token'''
+sudo chown root:wheel /etc/cato-scout/token
+sudo chmod 600 /etc/cato-scout/token
+```
+
+Install the recurring service:
+
+```sh
+sudo sh ./install-cato-scout-launchd.sh install
+```
+
+## Daily schedule variant
+
+If you prefer a daily 3:00 AM schedule instead of every 6 hours, replace the default plist in this package with:
+
+- `com.catonetworks.ai-scout-refresh.daily-3am.plist`
+
+Then rename it to:
+
+- `com.catonetworks.ai-scout-refresh.plist`
+
+before running the installer.
+
 ## Token file
 
 Create this file and paste the bearer token into it:

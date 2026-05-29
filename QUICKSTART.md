@@ -57,3 +57,11 @@ sudo sh ./install-cato-scout-launchd.sh uninstall
 - Logs:
   - `/var/log/cato-scout-refresh.log`
   - `/var/log/cato-scout-refresh.err`
+
+## Daily schedule variant
+
+If you want a once-per-day schedule at 3:00 AM instead of every 6 hours, use:
+
+- `com.catonetworks.ai-scout-refresh.daily-3am.plist`
+
+Rename it to `com.catonetworks.ai-scout-refresh.plist` before installing.
