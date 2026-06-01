@@ -37,6 +37,30 @@ sudo tail -50 /var/log/cato-scout-refresh.log
 sudo tail -50 /var/log/cato-scout-refresh.err
 ```
 
+## One-command health check
+
+Use this to inspect the service state and the latest log/error output with a single sudo prompt:
+
+```sh
+sudo sh -c '''echo "--- SERVICE ---"; launchctl print system/com.catonetworks.ai-scout-refresh 2>/dev/null | egrep "state =|last exit code =|pid =|runs =|last fire time =|program =" || true; echo; echo "--- LAST LOG ---"; tail -50 /var/log/cato-scout-refresh.log 2>/dev/null || true; echo; echo "--- LAST ERR ---"; tail -50 /var/log/cato-scout-refresh.err 2>/dev/null || true'''
+```
+
+## One-command clean test run
+
+Use this to clear the logs, force a fresh Scout run, wait briefly, and print only the new output:
+
+```sh
+sudo sh -c '''> /var/log/cato-scout-refresh.log; > /var/log/cato-scout-refresh.err; launchctl kickstart -k system/com.catonetworks.ai-scout-refresh; sleep 12; echo "--- LOG ---"; cat /var/log/cato-scout-refresh.log; echo; echo "--- ERR ---"; cat /var/log/cato-scout-refresh.err'''
+```
+
+A healthy run should show the following in `LOG`:
+
+- `Installed version is up to date.`
+- `Endpoint scan completed successfully`
+- `Detailed information reported successfully`
+
+And `ERR` should be empty.
+
 ## 4) Force a run now
 
 ```sh
